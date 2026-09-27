@@ -1,390 +1,308 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b5ed7">
-<meta name="description" content="HectorDeca - Gestión digital de DeCA">
 <title>HectorDeca</title>
-
 <style>
 *{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#f4f6f8;
-  color:#17202a;
-}
-
-header{
-  background:#0b5ed7;
-  color:white;
-  padding:18px;
-  text-align:center;
-  position:sticky;
-  top:0;
-  z-index:5;
-}
-
-header h1{
-  margin:0;
-  font-size:28px;
-}
-
-header p{
-  margin:5px 0 0;
-}
-
-main{
-  max-width:760px;
-  margin:auto;
-  padding:14px;
-}
-
-.card{
-  background:white;
-  border-radius:14px;
-  padding:17px;
-  margin-bottom:14px;
-  box-shadow:0 2px 8px #0001;
-}
-
-button{
-  border:0;
-  border-radius:10px;
-  padding:13px 16px;
-  font-size:16px;
-  cursor:pointer;
-}
-
-.primary{
-  background:#0b5ed7;
-  color:white;
-  width:100%;
-  margin-bottom:9px;
-}
-
-.secondary{
-  background:#e9eef5;
-  color:#17202a;
-  width:100%;
-}
-
-label{
-  display:block;
-  font-weight:bold;
-  margin-top:12px;
-}
-
-input,
-textarea,
-select{
-  width:100%;
-  padding:12px;
-  margin-top:6px;
-  border:1px solid #ccd3db;
-  border-radius:8px;
-  font-size:16px;
-  background:white;
-}
-
-textarea{
-  min-height:80px;
-}
-
-.row{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-
-.hidden{
-  display:none;
-}
-
-.item{
-  border:1px solid #ddd;
-  border-radius:10px;
-  padding:12px;
-  margin-top:10px;
-  background:#fff;
-}
-
-.actions{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
-  margin-top:10px;
-}
-
-.actions button{
-  width:100%;
-}
-
-.small{
-  font-size:13px;
-  color:#667085;
-}
-
-hr{
-  border:0;
-  border-top:1px solid #e1e5e9;
-  margin:18px 0;
-}
-
-h2{
-  margin-top:4px;
-}
-
-h3{
-  margin-bottom:5px;
-}
-
-.search{
-  margin-bottom:10px;
-}
-
-.catalogGrid{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:8px;
-}
-
-.catalogGrid button{
-  width:100%;
-  font-size:14px;
-}
-
-@media(max-width:560px){
-
-  .row,
-  .actions,
-  .catalogGrid{
-    grid-template-columns:1fr;
-  }
-
-}
-
-@media print{
-
-  header,
-  button,
-  .no-print{
-    display:none!important;
-  }
-
-  body{
-    background:white;
-  }
-
-  .card{
-    box-shadow:none;
-  }
-
-}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#17202a}
+header{background:#0b5ed7;color:white;padding:18px;text-align:center}
+header h1{margin:0;font-size:28px}
+header p{margin:5px 0 0}
+main{max-width:760px;margin:auto;padding:14px}
+.card{background:white;border-radius:14px;padding:17px;margin-bottom:14px;box-shadow:0 2px 8px #0001}
+button{border:0;border-radius:10px;padding:13px 16px;font-size:16px;cursor:pointer}
+.primary{background:#0b5ed7;color:white;width:100%;margin-bottom:9px}
+.secondary{background:#e9eef5;color:#17202a;width:100%}
+label{display:block;font-weight:bold;margin-top:12px}
+input,textarea,select{width:100%;padding:12px;margin-top:6px;border:1px solid #ccd3db;border-radius:8px;font-size:16px;background:white}
+textarea{min-height:80px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hidden{display:none}
+.item{border:1px solid #ddd;border-radius:10px;padding:12px;margin-top:10px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.small{font-size:13px;color:#667085}
+hr{border:0;border-top:1px solid #ddd;margin:18px 0}
+.catalogGrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+@media(max-width:560px){.row,.actions,.catalogGrid{grid-template-columns:1fr}}
+@media print{header,button,.no-print{display:none!important}body{background:white}}
 </style>
 </head>
 
 <body>
 
 <header>
-
 <h1>HectorDeca</h1>
-
 <p>Gestión digital de DeCA</p>
-
 </header>
 
-
 <main>
-
-
-<!-- =========================
-     INICIO
-     ========================= -->
 
 <section id="home" class="card">
 
 <h2>Nuevo DeCA</h2>
 
-<button
-class="primary"
-onclick="nuevoDeCa()">
-
+<button class="primary" onclick="nuevoDeCa()">
 ＋ Crear nuevo DeCA
-
 </button>
 
-
-<button
-class="secondary"
-onclick="show('history');loadHistory()">
-
+<button class="secondary" onclick="show('history');loadHistory()">
 📋 Mis transportes
-
 </button>
-
 
 <hr>
 
-
 <h2>Gestión rápida</h2>
-
 
 <div class="catalogGrid">
 
-
-<button
-class="secondary"
-onclick="nuevoCliente()">
-
+<button class="secondary" onclick="nuevoCliente()">
 👥 Clientes
-
 </button>
 
-
-<button
-class="secondary"
-onclick="nuevoVehiculo()">
-
+<button class="secondary" onclick="nuevoVehiculo()">
 🚛 Vehículos
-
 </button>
 
-
-<button
-class="secondary"
-onclick="nuevaMercancia()">
-
+<button class="secondary" onclick="nuevaMercancia()">
 📦 Mercancías
-
 </button>
-
 
 </div>
 
-
 <p class="small">
-
-Guarda tus datos habituales para reutilizarlos
-al crear nuevos DeCA.
-
+Guarda tus datos habituales para reutilizarlos al crear nuevos DeCA.
 </p>
 
 </section>
 
 
-
-<!-- =========================
-     NUEVO DECA
-     ========================= -->
-
-<section
-id="form"
-class="card hidden">
-
+<section id="form" class="card hidden">
 
 <h2>Nuevo DeCA</h2>
 
-
 <label>Fecha y hora</label>
-
-<input
-id="date"
-type="datetime-local">
-
-
+<input id="date" type="datetime-local">
 
 <h3>Cargador / remitente</h3>
 
-
 <label>Cliente habitual</label>
-
-<select
-id="clientSelect"
-onchange="usarCliente(this.value)">
-
-<option value="">
-
-— Seleccionar cliente —
-
-</option>
-
+<select id="clientSelect" onchange="usarCliente(this.value)">
+<option value="">— Seleccionar cliente —</option>
 </select>
 
-
 <label>Nombre</label>
-
 <input id="sender">
 
-
 <label>NIF</label>
-
 <input id="senderNif">
 
-
 <label>Dirección</label>
-
 <input id="senderAddress">
-
 
 
 <h3>Transportista</h3>
 
-
 <label>Nombre</label>
-
 <input id="carrier">
 
-
 <label>NIF</label>
-
 <input id="carrierNif">
 
-
 <label>Dirección</label>
-
 <input id="carrierAddress">
-
 
 
 <h3>Destinatario</h3>
 
-
 <label>Nombre</label>
-
 <input id="receiver">
 
-
 <label>NIF</label>
-
 <input id="receiverNif">
 
-
 <label>Dirección</label>
-
 <input id="receiverAddress">
-
 
 
 <h3>Transporte</h3>
 
+<div class="row">
+
+<div>
+<label>Origen</label>
+<input id="origin">
+</div>
+
+<div>
+<label>Destino</label>
+<input id="destination">
+</div>
+
+</div>
+
+
+<label>Mercancía habitual</label>
+
+<select id="goodsSelect" onchange="usarMercancia(this.value)">
+<option value="">— Seleccionar mercancía —</option>
+</select>
+
+<label>Mercancía</label>
+<input id="goods" placeholder="Descripción de la mercancía">
+
 
 <div class="row">
 
+<div>
+<label>Peso (kg)</label>
+<input id="weight" inputmode="decimal">
+</div>
 
 <div>
+<label>Bultos</label>
+<input id="packages">
+</div>
 
-<label>Origen</label>
-
-<input id="
-
-
-
+</div>
 
 
+<label>Vehículo habitual</label>
+
+<select id="vehicleSelect" onchange="usarVehiculo(this.value)">
+<option value="">— Seleccionar vehículo —</option>
+</select>
 
 
+<div class="row">
 
+<div>
+<label>Matrícula tractor</label>
+<input id="vehicle">
+</div>
+
+<div>
+<label>Matrícula remolque</label>
+<input id="trailer">
+</div>
+
+</div>
+
+
+<label>Observaciones</label>
+<textarea id="notes"></textarea>
+
+
+<button class="primary" onclick="saveDeca()">
+💾 Guardar DeCA
+</button>
+
+<button class="secondary" onclick="show('home')">
+Cancelar
+</button>
+
+</section>
+
+
+<section id="history" class="card hidden">
+
+<h2>Mis transportes</h2>
+
+<input
+id="searchBox"
+placeholder="🔎 Buscar DeCA, matrícula, cliente, origen..."
+oninput="filtrarTransportes()">
+
+<div id="list"></div>
+
+<button class="secondary" onclick="show('home')">
+Volver
+</button>
+
+</section>
+
+
+<section id="detail" class="card hidden">
+
+<h2>DeCA</h2>
+
+<div id="detailContent"></div>
+
+<div class="actions no-print">
+
+<button class="primary" onclick="window.print()">
+🖨️ PDF / Imprimir
+</button>
+
+<button class="secondary" onclick="compartirDeCa()">
+📤 Compartir
+</button>
+
+</div>
+
+<button
+class="secondary no-print"
+onclick="show('history');loadHistory()">
+
+Volver
+
+</button>
+
+</section>
+
+</main>
+
+
+<script>
+
+function show(id){
+
+document.querySelectorAll("section")
+.forEach(x=>x.classList.add("hidden"));
+
+document.getElementById(id)
+.classList.remove("hidden");
+
+window.scrollTo(0,0);
+
+}
+
+
+function nuevoDeCa(){
+
+show("form");
+
+const fecha=document.getElementById("date");
+
+if(!fecha.value){
+
+fecha.value=
+new Date()
+.toISOString()
+.slice(0,16);
+
+}
+
+if(window.cargarCatalogosFormulario){
+
+window.cargarCatalogosFormulario();
+
+}
+
+}
+
+
+document.getElementById("date").value=
+new Date()
+.toISOString()
+.slice(0,16);
+
+</script>
+
+
+<script src="backend.js"></script>
+
+</body>
+</html>
