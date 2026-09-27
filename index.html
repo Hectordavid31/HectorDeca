@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b5ed7">
+<title>HectorDeca</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#17202a}
+header{background:#0b5ed7;color:white;padding:20px;text-align:center}
+header h1{margin:0;font-size:28px}header p{margin:6px 0 0}
+main{max-width:700px;margin:auto;padding:16px}
+.card{background:white;border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 2px 8px #0001}
+button{border:0;border-radius:10px;padding:14px 18px;font-size:16px;cursor:pointer}
+.primary{background:#0b5ed7;color:white;width:100%;margin-bottom:10px}
+.secondary{background:#e9eef5;width:100%}
+label{display:block;font-weight:bold;margin-top:13px}
+input,textarea{width:100%;padding:12px;margin-top:6px;border:1px solid #ccd3db;border-radius:8px;font-size:16px}
+textarea{min-height:80px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hidden{display:none}
+.item{border:1px solid #ddd;border-radius:10px;padding:12px;margin-top:10px}
+.item strong{display:block}
+h2{margin-top:4px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>HectorDeca</h1>
+<p>Gestión digital de DeCA</p>
+</header>
+
+<main>
+
+<section id="home" class="card">
+<h2>Nuevo DeCA</h2>
+<button class="primary" onclick="show('form')">＋ Crear nuevo DeCA</button>
+<button class="secondary" onclick="show('history');loadHistory()">Mis transportes</button>
+</section>
+
+<section id="form" class="card hidden">
+<h2>Nuevo DeCA</h2>
+
+<label>Fecha y hora</label>
+<input id="date" type="datetime-local">
+
+<h3>Cargador / remitente</h3>
+<label>Nombre</label><input id="sender">
+<label>NIF</label><input id="senderNif">
+<label>Dirección</label><input id="senderAddress">
+
+<h3>Transportista</h3>
+<label>Nombre</label><input id="carrier">
+<label>NIF</label><input id="carrierNif">
+<label>Dirección</label><input id="carrierAddress">
+
+<h3>Destinatario</h3>
+<label>Nombre</label><input id="receiver">
+<label>NIF</label><input id="receiverNif">
+<label>Dirección</label><input id="receiverAddress">
+
+<h3>Transporte</h3>
+<div class="row">
+<div><label>Origen</label><input id="origin"></div>
+<div><label>Destino</label><input id="destination"></div>
+</div>
+
+<label>Mercancía</label>
+<input id="goods" placeholder="Descripción de la mercancía">
+
+<div class="row">
+<div><label>Peso</label><input id="weight" placeholder="kg"></div>
+<div><label>Bultos</label><input id="packages"></div>
+</div>
+
+<div class="row">
+<div><label>Matrícula tractor</label><input id="vehicle"></div>
+<div><label>Matrícula remolque</label><input id="trailer"></div>
+</div>
+
+<label>Observaciones</label>
+<textarea id="notes"></textarea>
+
+<button class="primary" onclick="saveDeca()">Guardar DeCA</button>
+<button class="secondary" onclick="show('home')">Cancelar</button>
+</section>
+
+<section id="history" class="card hidden">
+<h2>Mis transportes</h2>
+<div id="list"></div>
+<button class="secondary" onclick="show('home')">Volver</button>
+</section>
+
+<section id="detail" class="card hidden">
+<h2>DeCA</h2>
+<div id="detailContent"></div>
+<button class="primary" onclick="window.print()">Imprimir / Guardar PDF</button>
+<button class="secondary" onclick="show('history');loadHistory()">Volver</button>
+</section>
+
+</main>
+
+<script>
+const fields=[
+'date','sender','senderNif','senderAddress',
+'carrier','carrierNif','carrierAddress',
+'receiver','receiverNif','receiverAddress',
+'origin','destination','goods','weight',
+'packages','vehicle','trailer','notes'
+];
+
+function show(id){
+document.querySelectorAll('section').forEach(x=>x.classList.add('hidden'));
+document.getElementById(id).classList.remove('hidden');
+}
+
+function saveDeca(){
+const d={};
+fields.forEach(id=>d[id]=document.getElementById(id).value);
+
+if(!d.sender||!d.carrier||!d.receiver||!d.origin||!d.destination||!d.goods){
+alert('Completa los datos principales del DeCA.');
+return;
+}
+
+d.id='HD-'+new Date().toISOString().replace(/\D/g,'').slice(0,14);
+
+const list=JSON.parse(localStorage.getItem('hectordeca')||'[]');
+list.unshift(d);
+localStorage.setItem('hectordeca',JSON.stringify(list));
+
+alert('DeCA guardado: '+d.id);
+show('home');
+}
+
+function loadHistory(){
+const list=JSON.parse(localStorage.getItem('hectordeca')||'[]');
+const box=document.getElementById('list');
+
+if(!list.length){
+box.innerHTML='<p>Aún no hay transportes guardados.</p>';
+return;
+}
+
+box.innerHTML=list.map((d,i)=>`
+<div class="item">
+<strong>${d.id}</strong>
+${d.date||''}<br>
+${d.origin} → ${d.destination}<br>
+${d.goods}
+<br><br>
+<button onclick="view(${i})">Ver DeCA</button>
+</div>`).join('');
+}
+
+function view(i){
+const list=JSON.parse(localStorage.getItem('hectordeca')||'[]');
+const d=list[i];
+
+document.getElementById('detailContent').innerHTML=`
+<p><strong>ID:</strong> ${d.id}</p>
+<p><strong>Fecha:</strong> ${d.date}</p>
+<hr>
+<p><strong>Cargador:</strong><br>${d.sender}<br>${d.senderNif}<br>${d.senderAddress}</p>
+<p><strong>Transportista:</strong><br>${d.carrier}<br>${d.carrierNif}<br>${d.carrierAddress}</p>
+<p><strong>Destinatario:</strong><br>${d.receiver}<br>${d.receiverNif}<br>${d.receiverAddress}</p>
+<hr>
+<p><strong>Origen:</strong> ${d.origin}</p>
+<p><strong>Destino:</strong> ${d.destination}</p>
+<p><strong>Mercancía:</strong> ${d.goods}</p>
+<p><strong>Peso:</strong> ${d.weight} kg</p>
+<p><strong>Bultos:</strong> ${d.packages}</p>
+<p><strong>Tractor:</strong> ${d.vehicle}</p>
+<p><strong>Remolque:</strong> ${d.trailer}</p>
+<p><strong>Observaciones:</strong> ${d.notes}</p>
+`;
+
+show('detail');
+}
+
+document.getElementById('date').value=
+new Date().toISOString().slice(0,16);
+</script>
+
+</body>
+</html>
