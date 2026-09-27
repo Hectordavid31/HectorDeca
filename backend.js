@@ -125,10 +125,15 @@
 
       publicToken: row.public_token || "",
 
+      /*
+       * IMPORTANTE:
+       * El QR ahora apunta a GitHub Pages,
+       * no directamente a la Edge Function de Supabase.
+       */
+
       publicUrl:
         row.public_token
-          ? SUPABASE_URL +
-            "/functions/v1/deca-view?token=" +
+          ? "https://hectordavid31.github.io/HectorDeca/deca.html?token=" +
             encodeURIComponent(row.public_token)
           : ""
     };
