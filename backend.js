@@ -1,4 +1,3 @@
-
 (async function () {
 
   const SUPABASE_URL =
@@ -7,20 +6,24 @@
   const SUPABASE_PUBLISHABLE_KEY =
     "sb_publishable_pXTHMC3OrsO29fXit3_z5Q_usSHAG0o";
 
-  const { createClient } =
-    await import(
-      "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"
-    );
+  const { createClient } = await import(
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"
+  );
 
   const supabase = createClient(
     SUPABASE_URL,
     SUPABASE_PUBLISHABLE_KEY
   );
 
+  /* =========================
+     IDENTIFICADOR DEL USUARIO
+     ========================= */
+
   function obtenerOwnerKey() {
 
-    let key =
-      localStorage.getItem("hectordeca_owner_key");
+    let key = localStorage.getItem(
+      "hectordeca_owner_key"
+    );
 
     if (!key) {
 
@@ -42,6 +45,11 @@
   }
 
   const ownerKey = obtenerOwnerKey();
+
+
+  /* =========================
+     CÓDIGO DECA
+     ========================= */
 
   function crearCodigo(fecha) {
 
@@ -66,6 +74,11 @@
         .toUpperCase()
     );
   }
+
+
+  /* =========================
+     CONVERTIR DECA
+     ========================= */
 
   function convertirDeCa(row) {
 
@@ -95,6 +108,7 @@
 
       origin: row.origin || "",
       destination: row.destination || "",
+
       goods: row.goods || "",
 
       weight:
@@ -119,6 +133,11 @@
           : ""
     };
   }
+
+
+  /* =========================
+     GUARDAR DECA
+     ========================= */
 
   window.saveDeca = async function () {
 
@@ -147,14 +166,13 @@
 
     ids.forEach(id => {
 
-      const element =
+      const el =
         document.getElementById(id);
 
       d[id] =
-        element
-          ? element.value.trim()
-          : "";
+        el ? el.value.trim() : "";
     });
+
 
     if (
       !d.sender ||
@@ -171,6 +189,7 @@
 
       return;
     }
+
 
     const datos = {
 
@@ -199,6 +218,7 @@
 
       origin: d.origin,
       destination: d.destination,
+
       goods: d.goods,
 
       weight_kg:
@@ -218,17 +238,17 @@
       status: "active"
     };
 
+
     try {
 
       const { data, error } =
-        await supabase
-          .rpc(
-            "create_deca",
-            {
-              p_data: datos
-            }
-          )
-          .single();
+        await supabase.rpc(
+          "create_deca",
+          {
+            p_data: datos
+          }
+        ).single();
+
 
       if (error) {
 
@@ -240,12 +260,15 @@
         return;
       }
 
+
       alert(
         "DeCA guardado correctamente.\n\n" +
         data.deca_code
       );
 
+
       await window.loadHistory();
+
 
       const lista =
         JSON.parse(
@@ -253,6 +276,7 @@
             "hectordeca"
           ) || "[]"
         );
+
 
       if (lista.length) {
 
@@ -263,6 +287,7 @@
         show("home");
       }
 
+
     } catch (error) {
 
       alert(
@@ -272,6 +297,11 @@
     }
   };
 
+
+  /* =========================
+     MIS TRANSPORTES
+     ========================= */
+
   window.loadHistory = async function () {
 
     const box =
@@ -279,20 +309,22 @@
 
     if (!box) return;
 
+
     box.innerHTML =
       "<p>Cargando transportes...</p>";
+
 
     try {
 
       const { data, error } =
-        await supabase
-          .rpc(
-            "list_my_decas",
-            {
-              p_owner_key:
-                ownerKey
-            }
-          );
+        await supabase.rpc(
+          "list_my_decas",
+          {
+            p_owner_key:
+              ownerKey
+          }
+        );
+
 
       if (error) {
 
@@ -302,14 +334,17 @@
         return;
       }
 
+
       const lista =
         (data || [])
           .map(convertirDeCa);
+
 
       localStorage.setItem(
         "hectordeca",
         JSON.stringify(lista)
       );
+
 
       if (!lista.length) {
 
@@ -319,12 +354,16 @@
         return;
       }
 
+
       box.innerHTML =
         lista.map(
           (d, i) => `
+
           <div class="item">
 
-            <strong>${d.id}</strong>
+            <strong>
+              ${d.id}
+            </strong>
 
             ${d.date || ""}<br>
 
@@ -354,8 +393,10 @@
             </button>
 
           </div>
-          `
+
+        `
         ).join("");
+
 
     } catch (error) {
 
@@ -364,7 +405,79 @@
     }
   };
 
-  window.deleteDeCa = async function(index) {
+
+  /* =========================
+     BORRAR DECA
+     ========================= */
+
+  window.deleteDeCa =
+    async function(index) {
+
+      const lista =
+        JSON.parse(
+          localStorage.getItem(
+            "hectordeca"
+          ) || "[]"
+        );
+
+
+      const d = lista[index];
+
+
+      if (!d || !d.serverId) {
+
+        alert(
+          "No se puede borrar este DeCA."
+        );
+
+        return;
+      }
+
+
+      if (
+        !confirm(
+          "¿Seguro que quieres borrar\n" +
+          d.id +
+          "?"
+        )
+      ) return;
+
+
+      const { data, error } =
+        await supabase.rpc(
+          "delete_deca",
+          {
+            p_owner_key:
+              ownerKey,
+
+            p_id:
+              d.serverId
+          }
+        );
+
+
+      if (error || !data) {
+
+        alert(
+          "No se pudo borrar el DeCA."
+        );
+
+        return;
+      }
+
+
+      await window.loadHistory();
+
+
+      show("history");
+    };
+
+
+  /* =========================
+     VER DECA
+     ========================= */
+
+  window.view = function(index) {
 
     const lista =
       JSON.parse(
@@ -372,64 +485,21 @@
           "hectordeca"
         ) || "[]"
       );
+
 
     const d = lista[index];
 
-    if (!d || !d.serverId) {
-
-      alert(
-        "No se puede borrar este DeCA."
-      );
-
-      return;
-    }
-
-    if (
-      !confirm(
-        "¿Seguro que quieres borrar " +
-        d.id +
-        "?"
-      )
-    ) return;
-
-    const { data, error } =
-      await supabase.rpc(
-        "delete_deca",
-        {
-          p_owner_key: ownerKey,
-          p_id: d.serverId
-        }
-      );
-
-    if (error || !data) {
-
-      alert(
-        "No se pudo borrar el DeCA."
-      );
-
-      return;
-    }
-
-    await window.loadHistory();
-
-    show("history");
-  };
- window.view = function(i) {
-
-    const lista =
-      JSON.parse(
-        localStorage.getItem(
-          "hectordeca"
-        ) || "[]"
-      );
-
-    const d = lista[i];
 
     if (!d) return;
 
-    document.getElementById(
-      "detailContent"
-    ).innerHTML = `
+
+    const box =
+      document.getElementById(
+        "detailContent"
+      );
+
+
+    box.innerHTML = `
 
       <p>
         <strong>ID:</strong>
@@ -509,33 +579,331 @@
       ${
         d.publicUrl
           ? `
-            <hr>
 
-            <p>
-              <strong>DeCA público</strong>
-            </p>
+          <hr>
 
-            <p>
-              <a
-                href="${d.publicUrl}"
-                target="_blank"
-                rel="noopener"
-              >
-                🌐 Abrir DeCA en Internet
-              </a>
-            </p>
+          <p>
+            <strong>
+              DeCA público
+            </strong>
+          </p>
 
-            <p>
-              <strong>QR</strong>
-            </p>
+          <p>
+            <a
+              href="${d.publicUrl}"
+              target="_blank"
+              rel="noopener"
+            >
+              🌐 Abrir DeCA en Internet
+            </a>
+          </p>
 
-            <img
-              src="https://quickchart.io/qr?size=220&margin=1&text=${encodeURIComponent(d
- 
+          <p>
+            <strong>
+              QR del DeCA
+            </strong>
+          </p>
 
-   
-    
-   
-  
+          <img
+            src="https://quickchart.io/qr?size=220&margin=1&text=${encodeURIComponent(d.publicUrl)}"
+            style="
+              width:220px;
+              max-width:100%;
+            "
+          >
 
-    
+          `
+          : ""
+      }
+
+    `;
+
+
+    show("detail");
+  };
+
+
+  /* =========================
+     CLIENTES
+     ========================= */
+
+  window.nuevoCliente =
+    async function() {
+
+      const nombre =
+        prompt(
+          "Nombre del cliente:"
+        );
+
+      if (!nombre) return;
+
+
+      const nif =
+        prompt("NIF:");
+
+
+      const direccion =
+        prompt("Dirección:");
+
+
+      const { error } =
+        await supabase.rpc(
+          "save_catalog",
+          {
+
+            p_owner_key:
+              ownerKey,
+
+            p_type:
+              "clients",
+
+            p_data: {
+
+              kind:
+                "client",
+
+              name:
+                nombre,
+
+              nif:
+                nif || "",
+
+              address:
+                direccion || ""
+            }
+          }
+        );
+
+
+      if (error) {
+
+        alert(
+          "Error:\n\n" +
+          error.message
+        );
+
+        return;
+      }
+
+
+      alert(
+        "Cliente guardado correctamente."
+      );
+    };
+
+
+  /* =========================
+     VEHÍCULOS
+     ========================= */
+
+  window.nuevoVehiculo =
+    async function() {
+
+      const tractor =
+        prompt(
+          "Matrícula del tractor:"
+        );
+
+
+      if (!tractor) return;
+
+
+      const remolque =
+        prompt(
+          "Matrícula del remolque:"
+        );
+
+
+      const { error } =
+        await supabase.rpc(
+          "save_catalog",
+          {
+
+            p_owner_key:
+              ownerKey,
+
+            p_type:
+              "vehicles",
+
+            p_data: {
+
+              tractor_plate:
+                tractor,
+
+              trailer_plate:
+                remolque || ""
+            }
+          }
+        );
+
+
+      if (error) {
+
+        alert(
+          "Error:\n\n" +
+          error.message
+        );
+
+        return;
+      }
+
+
+      alert(
+        "Vehículo guardado correctamente."
+      );
+    };
+
+
+  /* =========================
+     MERCANCÍAS
+     ========================= */
+
+  window.nuevaMercancia =
+    async function() {
+
+      const nombre =
+        prompt(
+          "Descripción de la mercancía:"
+        );
+
+
+      if (!nombre) return;
+
+
+      const peso =
+        prompt(
+          "Peso habitual en kg:"
+        );
+
+
+      const bultos =
+        prompt(
+          "Bultos habituales:"
+        );
+
+
+      const { error } =
+        await supabase.rpc(
+          "save_catalog",
+          {
+
+            p_owner_key:
+              ownerKey,
+
+            p_type:
+              "goods",
+
+            p_data: {
+
+              name:
+                nombre,
+
+              default_weight_kg:
+                peso || "",
+
+              default_packages:
+                bultos || ""
+            }
+          }
+        );
+
+
+      if (error) {
+
+        alert(
+          "Error:\n\n" +
+          error.message
+        );
+
+        return;
+      }
+
+
+      alert(
+        "Mercancía guardada correctamente."
+      );
+    };
+
+
+  /* =========================
+     MENÚ DE GESTIÓN
+     ========================= */
+
+  function crearMenu() {
+
+    const home =
+      document.getElementById(
+        "home"
+      );
+
+
+    if (!home) return;
+
+
+    if (
+      document.getElementById(
+        "menuGestion"
+      )
+    ) return;
+
+
+    const menu =
+      document.createElement(
+        "div"
+      );
+
+
+    menu.id =
+      "menuGestion";
+
+
+    menu.innerHTML = `
+
+      <hr>
+
+      <h2>
+        Gestión
+      </h2>
+
+      <button
+        class="secondary"
+        onclick="nuevoCliente()"
+      >
+        👥 Clientes habituales
+      </button>
+
+      <br><br>
+
+      <button
+        class="secondary"
+        onclick="nuevoVehiculo()"
+      >
+        🚛 Vehículos
+      </button>
+
+      <br><br>
+
+      <button
+        class="secondary"
+        onclick="nuevaMercancia()"
+      >
+        📦 Mercancías habituales
+      </button>
+
+    `;
+
+
+    home.appendChild(menu);
+  }
+
+
+  /* =========================
+     INICIO
+     ========================= */
+
+  setTimeout(
+    crearMenu,
+    800
+  );
+
+})();
