@@ -1,3 +1,4 @@
+
 (async function () {
 
   const SUPABASE_URL =
@@ -16,16 +17,10 @@
     SUPABASE_PUBLISHABLE_KEY
   );
 
-
-  /* =========================
-     IDENTIFICADOR DEL USUARIO
-     ========================= */
-
   function obtenerOwnerKey() {
 
-    let key = localStorage.getItem(
-      "hectordeca_owner_key"
-    );
+    let key =
+      localStorage.getItem("hectordeca_owner_key");
 
     if (!key) {
 
@@ -46,13 +41,7 @@
     return key;
   }
 
-
   const ownerKey = obtenerOwnerKey();
-
-
-  /* =========================
-     CÓDIGO DEL DECA
-     ========================= */
 
   function crearCodigo(fecha) {
 
@@ -61,42 +50,30 @@
     const pad = n =>
       String(n).padStart(2, "0");
 
-    const fechaCodigo =
+    return (
+      "HD-" +
       d.getFullYear() +
       pad(d.getMonth() + 1) +
-      pad(d.getDate());
-
-    const horaCodigo =
+      pad(d.getDate()) +
+      "-" +
       pad(d.getHours()) +
       pad(d.getMinutes()) +
-      pad(d.getSeconds());
-
-    const aleatorio =
+      pad(d.getSeconds()) +
+      "-" +
       Math.random()
         .toString(36)
         .substring(2, 6)
-        .toUpperCase();
-
-    return (
-      "HD-" +
-      fechaCodigo +
-      "-" +
-      horaCodigo +
-      "-" +
-      aleatorio
+        .toUpperCase()
     );
   }
-
-
-  /* =========================
-     CONVERTIR DECA DE SUPABASE
-     ========================= */
 
   function convertirDeCa(row) {
 
     return {
 
       id: row.deca_code,
+
+      serverId: row.id,
 
       date: row.transport_date
         ? new Date(row.transport_date)
@@ -118,12 +95,10 @@
 
       origin: row.origin || "",
       destination: row.destination || "",
-
       goods: row.goods || "",
 
       weight:
-        row.weight_kg !== null &&
-        row.weight_kg !== undefined
+        row.weight_kg != null
           ? String(row.weight_kg)
           : "",
 
@@ -144,11 +119,6 @@
           : ""
     };
   }
-
-
-  /* =========================
-     GUARDAR DECA
-     ========================= */
 
   window.saveDeca = async function () {
 
@@ -186,7 +156,6 @@
           : "";
     });
 
-
     if (
       !d.sender ||
       !d.carrier ||
@@ -203,16 +172,13 @@
       return;
     }
 
-
-    const decaCode =
-      crearCodigo(d.date);
-
-
     const datos = {
 
-      deca_code: decaCode,
+      deca_code:
+        crearCodigo(d.date),
 
-      owner_key: ownerKey,
+      owner_key:
+        ownerKey,
 
       transport_date:
         d.date
@@ -233,7 +199,6 @@
 
       origin: d.origin,
       destination: d.destination,
-
       goods: d.goods,
 
       weight_kg:
@@ -253,7 +218,6 @@
       status: "active"
     };
 
-
     try {
 
       const { data, error } =
@@ -266,28 +230,22 @@
           )
           .single();
 
-
       if (error) {
 
-        console.error(error);
-
         alert(
-          "No se pudo guardar el DeCA en el servidor.\n\n" +
+          "No se pudo guardar el DeCA:\n\n" +
           error.message
         );
 
         return;
       }
 
-
       alert(
         "DeCA guardado correctamente.\n\n" +
         data.deca_code
       );
 
-
       await window.loadHistory();
-
 
       const lista =
         JSON.parse(
@@ -303,79 +261,28 @@
       } else {
 
         show("home");
-
       }
-
 
     } catch (error) {
 
-      console.error(error);
-
       alert(
-        "Ha ocurrido un error al guardar el DeCA.\n\n" +
+        "Error:\n\n" +
         error.message
       );
     }
   };
-
-
-  /* =========================
-     MIS TRANSPORTES
-     ========================= */
 
   window.loadHistory = async function () {
 
     const box =
       document.getElementById("list");
 
-
     if (!box) return;
-
 
     box.innerHTML =
       "<p>Cargando transportes...</p>";
 
-
     try {
-
-      /*
-       * Intentamos recuperar primero
-       * los DeCA antiguos que estaban
-       * guardados solamente en el móvil.
-       */
-
-      const locales =
-        JSON.parse(
-          localStorage.getItem(
-            "hectordeca"
-          ) || "[]"
-        );
-
-
-      for (const local of locales) {
-
-        if (
-          local.publicToken
-        ) {
-
-          await supabase.rpc(
-            "claim_deca",
-            {
-              p_public_token:
-                local.publicToken,
-
-              p_owner_key:
-                ownerKey
-            }
-          );
-        }
-      }
-
-
-      /*
-       * Recuperar todos los DeCA
-       * pertenecientes a este móvil.
-       */
 
       const { data, error } =
         await supabase
@@ -387,28 +294,22 @@
             }
           );
 
-
       if (error) {
 
-        console.error(error);
-
         box.innerHTML =
-          "<p>No se pudieron cargar los transportes.</p>";
+          "<p>Error al cargar los transportes.</p>";
 
         return;
       }
-
 
       const lista =
         (data || [])
           .map(convertirDeCa);
 
-
       localStorage.setItem(
         "hectordeca",
         JSON.stringify(lista)
       );
-
 
       if (!lista.length) {
 
@@ -418,61 +319,52 @@
         return;
       }
 
-
       box.innerHTML =
-        lista
-          .map(
-            (d, i) => `
-              <div class="item">
+        lista.map(
+          (d, i) => `
+          <div class="item">
 
-                <strong>
-                  ${d.id}
-                </strong>
+            <strong>${d.id}</strong>
 
-                ${d.date || ""}<br>
+            ${d.date || ""}<br>
 
-                ${d.origin}
-                →
-                ${d.destination}<br>
+            ${d.origin}
+            →
+            ${d.destination}<br>
 
-                ${d.goods}
+            ${d.goods}
 
-                <br><br>
+            <br><br>
 
-                <button
-                  onclick="view(${i})"
-                >
-                  Ver DeCA
-                </button>
+            <button
+              onclick="view(${i})"
+            >
+              Ver DeCA
+            </button>
 
-              </div>
-            `
-          )
-          .join("");
+            <button
+              onclick="deleteDeCa(${i})"
+              style="
+                background:#dc3545;
+                color:white;
+                margin-left:6px;
+              "
+            >
+              🗑️ Borrar
+            </button>
 
+          </div>
+          `
+        ).join("");
 
     } catch (error) {
-
-      console.error(error);
 
       box.innerHTML =
         "<p>Error al cargar los transportes.</p>";
     }
   };
 
-
-  /* =========================
-     VER DECA + QR
-     ========================= */
-
-  const vistaOriginal =
-    window.view;
-
-
-  window.view = function (i) {
-
-    vistaOriginal(i);
-
+  window.deleteDeCa = async function(index) {
 
     const lista =
       JSON.parse(
@@ -481,77 +373,169 @@
         ) || "[]"
       );
 
+    const d = lista[index];
+
+    if (!d || !d.serverId) {
+
+      alert(
+        "No se puede borrar este DeCA."
+      );
+
+      return;
+    }
+
+    if (
+      !confirm(
+        "¿Seguro que quieres borrar " +
+        d.id +
+        "?"
+      )
+    ) return;
+
+    const { data, error } =
+      await supabase.rpc(
+        "delete_deca",
+        {
+          p_owner_key: ownerKey,
+          p_id: d.serverId
+        }
+      );
+
+    if (error || !data) {
+
+      alert(
+        "No se pudo borrar el DeCA."
+      );
+
+      return;
+    }
+
+    await window.loadHistory();
+
+    show("history");
+  };
+ window.view = function(i) {
+
+    const lista =
+      JSON.parse(
+        localStorage.getItem(
+          "hectordeca"
+        ) || "[]"
+      );
 
     const d = lista[i];
 
+    if (!d) return;
 
-    if (
-      !d ||
-      !d.publicUrl
-    ) return;
+    document.getElementById(
+      "detailContent"
+    ).innerHTML = `
 
+      <p>
+        <strong>ID:</strong>
+        ${d.id}
+      </p>
 
-    const box =
-      document.getElementById(
-        "detailContent"
-      );
+      <p>
+        <strong>Fecha:</strong>
+        ${d.date}
+      </p>
 
-
-    const qr =
-      "https://quickchart.io/qr?size=220&margin=1&text=" +
-      encodeURIComponent(
-        d.publicUrl
-      );
-
-
-    box.insertAdjacentHTML(
-      "beforeend",
-
-      `
       <hr>
 
       <p>
-        <strong>
-          DeCA público:
-        </strong>
+        <strong>Cargador:</strong><br>
+        ${d.sender}<br>
+        ${d.senderNif}<br>
+        ${d.senderAddress}
       </p>
 
       <p>
-        <a
-          href="${d.publicUrl}"
-          target="_blank"
-          rel="noopener"
-        >
-          Abrir DeCA en Internet
-        </a>
+        <strong>Transportista:</strong><br>
+        ${d.carrier}<br>
+        ${d.carrierNif}<br>
+        ${d.carrierAddress}
       </p>
 
       <p>
-        <strong>
-          QR del DeCA
-        </strong>
+        <strong>Destinatario:</strong><br>
+        ${d.receiver}<br>
+        ${d.receiverNif}<br>
+        ${d.receiverAddress}
       </p>
 
-      <img
-        src="${qr}"
-        alt="QR del DeCA"
-        style="
-          width:220px;
-          max-width:100%;
-        "
-      >
+      <hr>
 
-      <p
-        style="
-          word-break:break-all;
-          font-size:12px;
-        "
-      >
-        ${d.publicUrl}
+      <p>
+        <strong>Origen:</strong>
+        ${d.origin}
       </p>
-      `
-    );
-  };
 
+      <p>
+        <strong>Destino:</strong>
+        ${d.destination}
+      </p>
 
-})();
+      <p>
+        <strong>Mercancía:</strong>
+        ${d.goods}
+      </p>
+
+      <p>
+        <strong>Peso:</strong>
+        ${d.weight} kg
+      </p>
+
+      <p>
+        <strong>Bultos:</strong>
+        ${d.packages}
+      </p>
+
+      <p>
+        <strong>Tractor:</strong>
+        ${d.vehicle}
+      </p>
+
+      <p>
+        <strong>Remolque:</strong>
+        ${d.trailer}
+      </p>
+
+      <p>
+        <strong>Observaciones:</strong>
+        ${d.notes}
+      </p>
+
+      ${
+        d.publicUrl
+          ? `
+            <hr>
+
+            <p>
+              <strong>DeCA público</strong>
+            </p>
+
+            <p>
+              <a
+                href="${d.publicUrl}"
+                target="_blank"
+                rel="noopener"
+              >
+                🌐 Abrir DeCA en Internet
+              </a>
+            </p>
+
+            <p>
+              <strong>QR</strong>
+            </p>
+
+            <img
+              src="https://quickchart.io/qr?size=220&margin=1&text=${encodeURIComponent(d
+ 
+
+   
+    
+   
+  
+
+    
