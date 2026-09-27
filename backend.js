@@ -15,9 +15,10 @@
     SUPABASE_PUBLISHABLE_KEY
   );
 
-  /* =========================
+
+  /* =====================================================
      IDENTIFICADOR DEL USUARIO
-     ========================= */
+     ===================================================== */
 
   function obtenerOwnerKey() {
 
@@ -47,9 +48,9 @@
   const ownerKey = obtenerOwnerKey();
 
 
-  /* =========================
+  /* =====================================================
      CÓDIGO DECA
-     ========================= */
+     ===================================================== */
 
   function crearCodigo(fecha) {
 
@@ -76,9 +77,24 @@
   }
 
 
-  /* =========================
+  /* =====================================================
+     SEGURIDAD HTML
+     ===================================================== */
+
+  function esc(valor) {
+
+    return String(valor ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+
+  /* =====================================================
      CONVERTIR DECA
-     ========================= */
+     ===================================================== */
 
   function convertirDeCa(row) {
 
@@ -125,12 +141,6 @@
 
       publicToken: row.public_token || "",
 
-      /*
-       * IMPORTANTE:
-       * El QR ahora apunta a GitHub Pages,
-       * no directamente a la Edge Function de Supabase.
-       */
-
       publicUrl:
         row.public_token
           ? "https://hectordavid31.github.io/HectorDeca/deca.html?token=" +
@@ -140,9 +150,9 @@
   }
 
 
-  /* =========================
+  /* =====================================================
      GUARDAR DECA
-     ========================= */
+     ===================================================== */
 
   window.saveDeca = async function () {
 
@@ -176,6 +186,7 @@
 
       d[id] =
         el ? el.value.trim() : "";
+
     });
 
 
@@ -290,8 +301,8 @@
       } else {
 
         show("home");
-      }
 
+      }
 
     } catch (error) {
 
@@ -299,13 +310,15 @@
         "Error:\n\n" +
         error.message
       );
+
     }
+
   };
 
 
-  /* =========================
+  /* =====================================================
      MIS TRANSPORTES
-     ========================= */
+     ===================================================== */
 
   window.loadHistory = async function () {
 
@@ -360,25 +373,67 @@
       }
 
 
+      renderTransportes(lista);
+
+    } catch (error) {
+
       box.innerHTML =
-        lista.map(
-          (d, i) => `
+        "<p>Error al cargar los transportes.</p>";
 
-          <div class="item">
+    }
 
-            <strong>
-              ${d.id}
-            </strong>
+  };
 
-            ${d.date || ""}<br>
 
-            ${d.origin}
-            →
-            ${d.destination}<br>
+  /* =====================================================
+     MOSTRAR TRANSPORTES
+     ===================================================== */
 
-            ${d.goods}
+  function renderTransportes(lista) {
 
-            <br><br>
+    const box =
+      document.getElementById("list");
+
+    if (!box) return;
+
+
+    if (!lista.length) {
+
+      box.innerHTML =
+        "<p>No se encontraron transportes.</p>";
+
+      return;
+    }
+
+
+    box.innerHTML =
+      lista.map(
+        (d, i) => `
+
+        <div class="item">
+
+          <strong>
+            ${esc(d.id)}
+          </strong>
+
+          ${esc(d.date || "")}
+          <br>
+
+          ${esc(d.origin)}
+          →
+          ${esc(d.destination)}
+
+          <br>
+
+          ${esc(d.goods)}
+
+          ${
+            d.vehicle
+              ? `<br>🚛 ${esc(d.vehicle)}`
+              : ""
+          }
+
+          <div class="actions">
 
             <button
               onclick="view(${i})"
@@ -387,33 +442,92 @@
             </button>
 
             <button
-              onclick="deleteDeCa(${i})"
               style="
                 background:#dc3545;
                 color:white;
-                margin-left:6px;
               "
+              onclick="deleteDeCa(${i})"
             >
               🗑️ Borrar
             </button>
 
           </div>
 
-        `
-        ).join("");
+        </div>
+
+      `
+      ).join("");
+
+  }
 
 
-    } catch (error) {
+  /* =====================================================
+     BUSCADOR
+     ===================================================== */
 
-      box.innerHTML =
-        "<p>Error al cargar los transportes.</p>";
+  window.filtrarTransportes = function () {
+
+    const texto =
+      (
+        document.getElementById(
+          "searchBox"
+        )?.value || ""
+      )
+      .trim()
+      .toLowerCase();
+
+
+    const lista =
+      JSON.parse(
+        localStorage.getItem(
+          "hectordeca"
+        ) || "[]"
+      );
+
+
+    if (!texto) {
+
+      renderTransportes(lista);
+
+      return;
     }
+
+
+    const filtrados =
+      lista.filter(d => {
+
+        const contenido = [
+
+          d.id,
+          d.date,
+          d.sender,
+          d.carrier,
+          d.receiver,
+          d.origin,
+          d.destination,
+          d.goods,
+          d.vehicle,
+          d.trailer,
+          d.notes
+
+        ]
+        .join(" ")
+        .toLowerCase();
+
+
+        return contenido.includes(texto);
+
+      });
+
+
+    renderTransportes(filtrados);
+
   };
 
 
-  /* =========================
+  /* =====================================================
      BORRAR DECA
-     ========================= */
+     ===================================================== */
 
   window.deleteDeCa =
     async function(index) {
@@ -473,14 +587,14 @@
 
       await window.loadHistory();
 
-
       show("history");
+
     };
 
 
-  /* =========================
+  /* =====================================================
      VER DECA
-     ========================= */
+     ===================================================== */
 
   window.view = function(index) {
 
@@ -494,7 +608,6 @@
 
     const d = lista[index];
 
-
     if (!d) return;
 
 
@@ -504,82 +617,87 @@
       );
 
 
+    window.decaActual =
+      d;
+
+
     box.innerHTML = `
 
       <p>
         <strong>ID:</strong>
-        ${d.id}
+        ${esc(d.id)}
       </p>
 
       <p>
         <strong>Fecha:</strong>
-        ${d.date}
+        ${esc(d.date)}
       </p>
 
       <hr>
 
       <p>
         <strong>Cargador:</strong><br>
-        ${d.sender}<br>
-        ${d.senderNif}<br>
-        ${d.senderAddress}
+        ${esc(d.sender)}<br>
+        ${esc(d.senderNif)}<br>
+        ${esc(d.senderAddress)}
       </p>
 
       <p>
         <strong>Transportista:</strong><br>
-        ${d.carrier}<br>
-        ${d.carrierNif}<br>
-        ${d.carrierAddress}
+        ${esc(d.carrier)}<br>
+        ${esc(d.carrierNif)}<br>
+        ${esc(d.carrierAddress)}
       </p>
 
       <p>
         <strong>Destinatario:</strong><br>
-        ${d.receiver}<br>
-        ${d.receiverNif}<br>
-        ${d.receiverAddress}
+        ${esc(d.receiver)}<br>
+        ${esc(d.receiverNif)}<br>
+        ${esc(d.receiverAddress)}
       </p>
 
       <hr>
 
       <p>
         <strong>Origen:</strong>
-        ${d.origin}
+        ${esc(d.origin)}
       </p>
 
       <p>
         <strong>Destino:</strong>
-        ${d.destination}
+        ${esc(d.destination)}
       </p>
 
       <p>
         <strong>Mercancía:</strong>
-        ${d.goods}
+        ${esc(d.goods)}
       </p>
 
       <p>
         <strong>Peso:</strong>
-        ${d.weight} kg
+        ${esc(d.weight)} kg
       </p>
 
       <p>
         <strong>Bultos:</strong>
-        ${d.packages}
+        ${esc(d.packages)}
       </p>
 
       <p>
         <strong>Tractor:</strong>
-        ${d.vehicle}
+        ${esc(d.vehicle)}
       </p>
 
       <p>
         <strong>Remolque:</strong>
-        ${d.trailer}
+        ${esc(d.trailer)}
       </p>
 
       <p>
         <strong>Observaciones:</strong>
-        ${d.notes}
+        ${esc(d.notes)}
       </p>
+
 
       ${
         d.publicUrl
@@ -595,7 +713,7 @@
 
           <p>
             <a
-              href="${d.publicUrl}"
+              href="${esc(d.publicUrl)}"
               target="_blank"
               rel="noopener"
             >
@@ -625,12 +743,103 @@
 
 
     show("detail");
+
   };
 
 
-  /* =========================
+  /* =====================================================
+     COMPARTIR DECA
+     ===================================================== */
+
+  window.compartirDeCa =
+    async function() {
+
+      const d =
+        window.decaActual;
+
+
+      if (!d || !d.publicUrl) {
+
+        alert(
+          "Este DeCA todavía no tiene un enlace público."
+        );
+
+        return;
+      }
+
+
+      try {
+
+        if (
+          navigator.share
+        ) {
+
+          await navigator.share({
+
+            title:
+              "DeCA " + d.id,
+
+            text:
+              "DeCA " +
+              d.id +
+              "\n" +
+              d.origin +
+              " → " +
+              d.destination,
+
+            url:
+              d.publicUrl
+
+          });
+
+        } else {
+
+          await navigator.clipboard.writeText(
+            d.publicUrl
+          );
+
+          alert(
+            "Enlace copiado. Ya puedes pegarlo donde quieras."
+          );
+
+        }
+
+      } catch (error) {
+
+        if (
+          error.name !==
+          "AbortError"
+        ) {
+
+          try {
+
+            await navigator.clipboard.writeText(
+              d.publicUrl
+            );
+
+            alert(
+              "Enlace copiado."
+            );
+
+          } catch (e) {
+
+            prompt(
+              "Copia este enlace:",
+              d.publicUrl
+            );
+
+          }
+
+        }
+
+      }
+
+    };
+
+
+  /* =====================================================
      CLIENTES
-     ========================= */
+     ===================================================== */
 
   window.nuevoCliente =
     async function() {
@@ -668,14 +877,16 @@
                 "client",
 
               name:
-                nombre,
+                nombre.trim(),
 
               nif:
                 nif || "",
 
               address:
                 direccion || ""
+
             }
+
           }
         );
 
@@ -694,12 +905,13 @@
       alert(
         "Cliente guardado correctamente."
       );
+
     };
 
 
-  /* =========================
+  /* =====================================================
      VEHÍCULOS
-     ========================= */
+     ===================================================== */
 
   window.nuevoVehiculo =
     async function() {
@@ -733,11 +945,15 @@
             p_data: {
 
               tractor_plate:
-                tractor,
+                tractor.trim().toUpperCase(),
 
               trailer_plate:
-                remolque || ""
+                remolque
+                  ? remolque.trim().toUpperCase()
+                  : ""
+
             }
+
           }
         );
 
@@ -756,12 +972,13 @@
       alert(
         "Vehículo guardado correctamente."
       );
+
     };
 
 
-  /* =========================
+  /* =====================================================
      MERCANCÍAS
-     ========================= */
+     ===================================================== */
 
   window.nuevaMercancia =
     async function() {
@@ -801,14 +1018,16 @@
             p_data: {
 
               name:
-                nombre,
+                nombre.trim(),
 
               default_weight_kg:
                 peso || "",
 
               default_packages:
                 bultos || ""
+
             }
+
           }
         );
 
@@ -827,88 +1046,385 @@
       alert(
         "Mercancía guardada correctamente."
       );
+
     };
 
 
-  /* =========================
-     MENÚ DE GESTIÓN
-     ========================= */
+  /* =====================================================
+     CARGAR CATÁLOGOS
+     ===================================================== */
 
-  function crearMenu() {
+  async function obtenerCatalogo(tipo) {
 
-    const home =
-      document.getElementById(
-        "home"
-      );
+    try {
 
+      const { data, error } =
+        await supabase.rpc(
+          "list_catalog",
+          {
 
-    if (!home) return;
+            p_owner_key:
+              ownerKey,
 
+            p_type:
+              tipo
 
-    if (
-      document.getElementById(
-        "menuGestion"
-      )
-    ) return;
-
-
-    const menu =
-      document.createElement(
-        "div"
-      );
+          }
+        );
 
 
-    menu.id =
-      "menuGestion";
+      if (error) {
+
+        console.error(
+          "Error catálogo:",
+          error
+        );
+
+        return [];
+
+      }
 
 
-    menu.innerHTML = `
+      return data || [];
 
-      <hr>
+    } catch (error) {
 
-      <h2>
-        Gestión
-      </h2>
+      console.error(error);
 
-      <button
-        class="secondary"
-        onclick="nuevoCliente()"
-      >
-        👥 Clientes habituales
-      </button>
+      return [];
 
-      <br><br>
+    }
 
-      <button
-        class="secondary"
-        onclick="nuevoVehiculo()"
-      >
-        🚛 Vehículos
-      </button>
-
-      <br><br>
-
-      <button
-        class="secondary"
-        onclick="nuevaMercancia()"
-      >
-        📦 Mercancías habituales
-      </button>
-
-    `;
-
-
-    home.appendChild(menu);
   }
 
 
-  /* =========================
+  /* =====================================================
+     RELLENAR FORMULARIO
+     ===================================================== */
+
+  window.cargarCatalogosFormulario =
+    async function() {
+
+      const clientes =
+        await obtenerCatalogo(
+          "clients"
+        );
+
+
+      const vehiculos =
+        await obtenerCatalogo(
+          "vehicles"
+        );
+
+
+      const mercancias =
+        await obtenerCatalogo(
+          "goods"
+        );
+
+
+      const clienteSelect =
+        document.getElementById(
+          "clientSelect"
+        );
+
+
+      const vehiculoSelect =
+        document.getElementById(
+          "vehicleSelect"
+        );
+
+
+      const goodsSelect =
+        document.getElementById(
+          "goodsSelect"
+        );
+
+
+      if (clienteSelect) {
+
+        clienteSelect.innerHTML =
+          `<option value="">
+          — Seleccionar cliente —
+          </option>`;
+
+
+        clientes.forEach(c => {
+
+          const option =
+            document.createElement(
+              "option"
+            );
+
+          option.value =
+            JSON.stringify(c);
+
+          option.textContent =
+            c.name || "";
+
+          clienteSelect.appendChild(
+            option
+          );
+
+        });
+
+      }
+
+
+      if (vehiculoSelect) {
+
+        vehiculoSelect.innerHTML =
+          `<option value="">
+          — Seleccionar vehículo —
+          </option>`;
+
+
+        vehiculos.forEach(v => {
+
+          const option =
+            document.createElement(
+              "option"
+            );
+
+          option.value =
+            JSON.stringify(v);
+
+          option.textContent =
+            (
+              v.tractor_plate ||
+              ""
+            ) +
+            (
+              v.trailer_plate
+                ? " + " +
+                  v.trailer_plate
+                : ""
+            );
+
+          vehiculoSelect.appendChild(
+            option
+          );
+
+        });
+
+      }
+
+
+      if (goodsSelect) {
+
+        goodsSelect.innerHTML =
+          `<option value="">
+          — Seleccionar mercancía —
+          </option>`;
+
+
+        mercancias.forEach(g => {
+
+          const option =
+            document.createElement(
+              "option"
+            );
+
+          option.value =
+            JSON.stringify(g);
+
+          option.textContent =
+            g.name || "";
+
+          goodsSelect.appendChild(
+            option
+          );
+
+        });
+
+      }
+
+    };
+
+
+  /* =====================================================
+     USAR CLIENTE
+     ===================================================== */
+
+  window.usarCliente =
+    function(valor) {
+
+      if (!valor) return;
+
+
+      try {
+
+        const c =
+          JSON.parse(valor);
+
+
+        const sender =
+          document.getElementById(
+            "sender"
+          );
+
+        const nif =
+          document.getElementById(
+            "senderNif"
+          );
+
+        const address =
+          document.getElementById(
+            "senderAddress"
+          );
+
+
+        if (sender)
+          sender.value =
+            c.name || "";
+
+
+        if (nif)
+          nif.value =
+            c.nif || "";
+
+
+        if (address)
+          address.value =
+            c.address || "";
+
+
+      } catch (error) {
+
+        console.error(error);
+
+      }
+
+    };
+
+
+  /* =====================================================
+     USAR VEHÍCULO
+     ===================================================== */
+
+  window.usarVehiculo =
+    function(valor) {
+
+      if (!valor) return;
+
+
+      try {
+
+        const v =
+          JSON.parse(valor);
+
+
+        const tractor =
+          document.getElementById(
+            "vehicle"
+          );
+
+        const trailer =
+          document.getElementById(
+            "trailer"
+          );
+
+
+        if (tractor)
+          tractor.value =
+            v.tractor_plate || "";
+
+
+        if (trailer)
+          trailer.value =
+            v.trailer_plate || "";
+
+
+      } catch (error) {
+
+        console.error(error);
+
+      }
+
+    };
+
+
+  /* =====================================================
+     USAR MERCANCÍA
+     ===================================================== */
+
+  window.usarMercancia =
+    function(valor) {
+
+      if (!valor) return;
+
+
+      try {
+
+        const g =
+          JSON.parse(valor);
+
+
+        const goods =
+          document.getElementById(
+            "goods"
+          );
+
+        const weight =
+          document.getElementById(
+            "weight"
+          );
+
+        const packages =
+          document.getElementById(
+            "packages"
+          );
+
+
+        if (goods)
+          goods.value =
+            g.name || "";
+
+
+        if (
+          weight &&
+          g.default_weight_kg != null
+        )
+          weight.value =
+            g.default_weight_kg;
+
+
+        if (
+          packages &&
+          g.default_packages != null
+        )
+          packages.value =
+            g.default_packages;
+
+
+      } catch (error) {
+
+        console.error(error);
+
+      }
+
+    };
+
+
+  /* =====================================================
      INICIO
-     ========================= */
+     ===================================================== */
 
   setTimeout(
-    crearMenu,
-    800
+    function() {
+
+      if (
+        window.cargarCatalogosFormulario
+      ) {
+
+        window.cargarCatalogosFormulario();
+
+      }
+
+    },
+    500
   );
 
+
 })();
+    
