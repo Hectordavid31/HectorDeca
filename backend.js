@@ -114,11 +114,9 @@
 
     try {
 
-      const { data, error } = await supabase
-        .from("decas")
-        .insert(datos)
-        .select("id,deca_code,public_token")
-        .single();
+    const { data, error } = await supabase
+        .rpc("create_deca", { p_data: datos })
+        .single();  
 
       if (error) {
         console.error(error);
