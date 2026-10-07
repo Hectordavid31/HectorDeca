@@ -83,7 +83,7 @@ Guarda tus datos habituales para reutilizarlos al crear nuevos DeCA.
 
 <h2>Nuevo DeCA</h2>
 
-<label>Fecha y hora</label>
+<label>Fecha y hora (Canarias)</label>
 <input id="date" type="datetime-local">
 
 <h3>Cargador / remitente</h3>
@@ -257,6 +257,10 @@ Volver
 
 <script>
 
+/* =====================================================
+   MOSTRAR SECCIÓN
+   ===================================================== */
+
 function show(id){
 
 document.querySelectorAll("section")
@@ -270,18 +274,63 @@ window.scrollTo(0,0);
 }
 
 
+/* =====================================================
+   FECHA Y HORA EXCLUSIVAMENTE DE CANARIAS
+   ===================================================== */
+
+function fechaHoraCanarias(){
+
+const parts =
+new Intl.DateTimeFormat("en-CA", {
+
+timeZone:"Atlantic/Canary",
+
+year:"numeric",
+month:"2-digit",
+day:"2-digit",
+
+hour:"2-digit",
+minute:"2-digit",
+
+hourCycle:"h23"
+
+}).formatToParts(new Date());
+
+const p =
+Object.fromEntries(
+parts.map(x=>[x.type,x.value])
+);
+
+return (
+p.year +
+"-" +
+p.month +
+"-" +
+p.day +
+"T" +
+p.hour +
+":" +
+p.minute
+);
+
+}
+
+
+/* =====================================================
+   NUEVO DECA
+   ===================================================== */
+
 function nuevoDeCa(){
 
 show("form");
 
-const fecha=document.getElementById("date");
+const fecha =
+document.getElementById("date");
 
 if(!fecha.value){
 
-fecha.value=
-new Date()
-.toISOString()
-.slice(0,16);
+fecha.value =
+fechaHoraCanarias();
 
 }
 
@@ -294,10 +343,12 @@ window.cargarCatalogosFormulario();
 }
 
 
-document.getElementById("date").value=
-new Date()
-.toISOString()
-.slice(0,16);
+/* =====================================================
+   FECHA INICIAL
+   ===================================================== */
+
+document.getElementById("date").value =
+fechaHoraCanarias();
 
 </script>
 
