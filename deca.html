@@ -94,53 +94,130 @@ button{
 </div>
 
 <script>
+
 const SUPABASE_URL =
 "https://uqkmwdhzuqbsiusqeroa.supabase.co";
 
 const SUPABASE_KEY =
 "sb_publishable_pXTHMC3OrsO29fXit3_z5Q_usSHAG0o";
 
+
+/* =====================================================
+   FECHA Y HORA EXCLUSIVAMENTE DE CANARIAS
+   ===================================================== */
+
+function fechaCanarias(iso){
+
+  if(!iso) return "";
+
+  return new Intl.DateTimeFormat("es-ES", {
+
+    timeZone:"Atlantic/Canary",
+
+    year:"numeric",
+    month:"2-digit",
+    day:"2-digit",
+
+    hour:"2-digit",
+    minute:"2-digit",
+
+    hourCycle:"h23"
+
+  })
+  .format(new Date(iso))
+  .replace(",", "");
+
+}
+
+
+/* =====================================================
+   CARGAR DECA
+   ===================================================== */
+
 async function cargarDeCa(){
 
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get("token");
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const token =
+    params.get("token");
+
 
   if(!token){
+
     document.getElementById("contenido").innerHTML =
       '<p class="error">No se ha encontrado el código de la DeCA.</p>';
+
     return;
   }
 
+
   try{
 
-    const respuesta = await fetch(
-      SUPABASE_URL + "/rest/v1/rpc/get_deca_by_token",
-      {
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "apikey":SUPABASE_KEY,
-          "Authorization":"Bearer " + SUPABASE_KEY
-        },
-        body:JSON.stringify({
-          p_token:token
-        })
-      }
-    );
+    const respuesta =
+      await fetch(
+
+        SUPABASE_URL +
+        "/rest/v1/rpc/get_deca_by_token",
+
+        {
+          method:"POST",
+
+          headers:{
+
+            "Content-Type":
+              "application/json",
+
+            "apikey":
+              SUPABASE_KEY,
+
+            "Authorization":
+              "Bearer " +
+              SUPABASE_KEY
+
+          },
+
+          body:
+            JSON.stringify({
+              p_token:token
+            })
+
+        }
+
+      );
+
 
     if(!respuesta.ok){
-      throw new Error("No se pudo consultar la DeCA");
+
+      throw new Error(
+        "No se pudo consultar la DeCA"
+      );
+
     }
 
-    const datos = await respuesta.json();
 
-    if(!datos || datos.length === 0){
+    const datos =
+      await respuesta.json();
+
+
+    if(
+      !datos ||
+      datos.length === 0
+    ){
+
       document.getElementById("contenido").innerHTML =
         '<p class="error">DeCA no encontrada o no disponible.</p>';
+
       return;
+
     }
 
-    const d = datos[0];
+
+    const d =
+      datos[0];
+
 
     document.getElementById("contenido").innerHTML = `
 
@@ -149,85 +226,189 @@ async function cargarDeCa(){
       <div class="grid">
 
         <div class="item">
-          <div class="label">Código DeCA</div>
-          <div class="value">${d.deca_code || ""}</div>
+
+          <div class="label">
+            Código DeCA
+          </div>
+
+          <div class="value">
+            ${d.deca_code || ""}
+          </div>
+
         </div>
 
+
         <div class="item">
-          <div class="label">Fecha</div>
-          <div class="value">${d.transport_date || ""}</div>
+
+          <div class="label">
+            Fecha y hora (Canarias)
+          </div>
+
+          <div class="value">
+            ${fechaCanarias(d.transport_date)}
+          </div>
+
         </div>
 
       </div>
+
 
       <h2>Partes</h2>
 
       <div class="grid">
 
         <div class="item">
-          <div class="label">Cargador / remitente</div>
-          <div class="value">${d.sender_name || ""}</div>
+
+          <div class="label">
+            Cargador / remitente
+          </div>
+
+          <div class="value">
+            ${d.sender_name || ""}
+          </div>
+
         </div>
+
 
         <div class="item">
-          <div class="label">Transportista</div>
-          <div class="value">${d.carrier_name || ""}</div>
+
+          <div class="label">
+            Transportista
+          </div>
+
+          <div class="value">
+            ${d.carrier_name || ""}
+          </div>
+
         </div>
 
+
         <div class="item full">
-          <div class="label">Destinatario</div>
-          <div class="value">${d.receiver_name || ""}</div>
+
+          <div class="label">
+            Destinatario
+          </div>
+
+          <div class="value">
+            ${d.receiver_name || ""}
+          </div>
+
         </div>
 
       </div>
+
 
       <h2>Transporte</h2>
 
       <div class="grid">
 
         <div class="item">
-          <div class="label">Origen</div>
-          <div class="value">${d.origin || ""}</div>
+
+          <div class="label">
+            Origen
+          </div>
+
+          <div class="value">
+            ${d.origin || ""}
+          </div>
+
         </div>
 
+
         <div class="item">
-          <div class="label">Destino</div>
-          <div class="value">${d.destination || ""}</div>
+
+          <div class="label">
+            Destino
+          </div>
+
+          <div class="value">
+            ${d.destination || ""}
+          </div>
+
         </div>
+
 
         <div class="item full">
-          <div class="label">Mercancía</div>
-          <div class="value">${d.goods || ""}</div>
+
+          <div class="label">
+            Mercancía
+          </div>
+
+          <div class="value">
+            ${d.goods || ""}
+          </div>
+
         </div>
 
-        <div class="item">
-          <div class="label">Peso</div>
-          <div class="value">${d.weight_kg || ""} kg</div>
-        </div>
 
         <div class="item">
-          <div class="label">Bultos</div>
-          <div class="value">${d.packages || ""}</div>
+
+          <div class="label">
+            Peso
+          </div>
+
+          <div class="value">
+            ${d.weight_kg || ""} kg
+          </div>
+
         </div>
 
-        <div class="item">
-          <div class="label">Matrícula tractora</div>
-          <div class="value">${d.vehicle_plate || ""}</div>
-        </div>
 
         <div class="item">
-          <div class="label">Matrícula remolque</div>
-          <div class="value">${d.trailer_plate || ""}</div>
+
+          <div class="label">
+            Bultos
+          </div>
+
+          <div class="value">
+            ${d.packages || ""}
+          </div>
+
         </div>
+
+
+        <div class="item">
+
+          <div class="label">
+            Matrícula tractora
+          </div>
+
+          <div class="value">
+            ${d.vehicle_plate || ""}
+          </div>
+
+        </div>
+
+
+        <div class="item">
+
+          <div class="label">
+            Matrícula remolque
+          </div>
+
+          <div class="value">
+            ${d.trailer_plate || ""}
+          </div>
+
+        </div>
+
 
         <div class="item full">
-          <div class="label">Observaciones</div>
-          <div class="value">${d.notes || ""}</div>
+
+          <div class="label">
+            Observaciones
+          </div>
+
+          <div class="value">
+            ${d.notes || ""}
+          </div>
+
         </div>
 
       </div>
 
     `;
+
 
   }catch(error){
 
@@ -237,9 +418,12 @@ async function cargarDeCa(){
       '<p class="error">Error al cargar la DeCA.</p>';
 
   }
+
 }
 
+
 cargarDeCa();
+
 </script>
 
 </body>
