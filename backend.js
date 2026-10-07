@@ -49,25 +49,180 @@
 
 
   /* =====================================================
+     HORA DE CANARIAS
+     ===================================================== */
+
+  function partesCanarias(fecha) {
+
+    const partes =
+      new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Atlantic/Canary",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hourCycle: "h23"
+      }).formatToParts(new Date(fecha));
+
+    const resultado = {};
+
+    partes.forEach(p => {
+
+      if (p.type !== "literal") {
+        resultado[p.type] = p.value;
+      }
+
+    });
+
+    return resultado;
+  }
+
+
+  function fechaHoraCanariasInput(
+    fecha = new Date()
+  ) {
+
+    const p =
+      partesCanarias(fecha);
+
+    return (
+      p.year +
+      "-" +
+      p.month +
+      "-" +
+      p.day +
+      "T" +
+      p.hour +
+      ":" +
+      p.minute
+    );
+  }
+
+
+  function offsetCanarias(fecha) {
+
+    const partes =
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "Atlantic/Canary",
+        timeZoneName: "shortOffset"
+      }).formatToParts(new Date(fecha));
+
+    const zona =
+      partes.find(
+        p => p.type === "timeZoneName"
+      )?.value || "GMT";
+
+    if (
+      zona === "GMT" ||
+      zona === "UTC"
+    ) {
+      return 0;
+    }
+
+    const m =
+      zona.match(
+        /^GMT([+-])(\d{1,2})(?::(\d{2}))?$/
+      );
+
+    if (!m) return 0;
+
+    const signo =
+      m[1] === "+" ? 1 : -1;
+
+    return (
+      signo *
+      (
+        Number(m[2]) * 60 +
+        Number(m[3] || 0)
+      )
+    );
+  }
+
+
+  function fechaInputCanariasAISO(valor) {
+
+    if (!valor) {
+      return new Date().toISOString();
+    }
+
+    const m =
+      valor.match(
+        /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/
+      );
+
+    if (!m) {
+      return new Date(valor).toISOString();
+    }
+
+    const base =
+      Date.UTC(
+        Number(m[1]),
+        Number(m[2]) - 1,
+        Number(m[3]),
+        Number(m[4]),
+        Number(m[5]),
+        0
+      );
+
+    let offset =
+      offsetCanarias(
+        new Date(base)
+      );
+
+    let utc =
+      base -
+      offset * 60000;
+
+    const nuevoOffset =
+      offsetCanarias(
+        new Date(utc)
+      );
+
+    if (nuevoOffset !== offset) {
+
+      offset = nuevoOffset;
+
+      utc =
+        base -
+        offset * 60000;
+    }
+
+    return new Date(utc).toISOString();
+  }
+
+
+  function fechaISOACanarias(iso) {
+
+    if (!iso) return "";
+
+    return fechaHoraCanariasInput(
+      new Date(iso)
+    );
+  }
+
+
+  /* =====================================================
      CÓDIGO DECA
      ===================================================== */
 
   function crearCodigo(fecha) {
 
-    const d = new Date(fecha || Date.now());
-
-    const pad = n =>
-      String(n).padStart(2, "0");
+    const p =
+      partesCanarias(
+        fecha || new Date()
+      );
 
     return (
       "HD-" +
-      d.getFullYear() +
-      pad(d.getMonth() + 1) +
-      pad(d.getDate()) +
+      p.year +
+      p.month +
+      p.day +
       "-" +
-      pad(d.getHours()) +
-      pad(d.getMinutes()) +
-      pad(d.getSeconds()) +
+      p.hour +
+      p.minute +
+      p.second +
       "-" +
       Math.random()
         .toString(36)
@@ -104,11 +259,12 @@
 
       serverId: row.id,
 
-      date: row.transport_date
-        ? new Date(row.transport_date)
-            .toISOString()
-            .slice(0, 16)
-        : "",
+      date:
+        row.transport_date
+          ? fechaISOACanarias(
+              row.transport_date
+            )
+          : "",
 
       sender: row.sender_name || "",
       senderNif: row.sender_nif || "",
@@ -144,7 +300,9 @@
       publicUrl:
         row.public_token
           ? "https://hectordavid31.github.io/HectorDeca/deca.html?token=" +
-            encodeURIComponent(row.public_token)
+            encodeURIComponent(
+              row.public_token
+            )
           : ""
     };
   }
@@ -217,7 +375,9 @@
 
       transport_date:
         d.date
-          ? new Date(d.date).toISOString()
+          ? fechaInputCanariasAISO(
+              d.date
+            )
           : new Date().toISOString(),
 
       sender_name: d.sender,
@@ -1427,4 +1587,3 @@
 
 
 })();
-    
