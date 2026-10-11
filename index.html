@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -30,7 +31,6 @@ hr{border:0;border-top:1px solid #ddd;margin:18px 0}
 @media print{header,button,.no-print{display:none!important}body{background:white}}
 </style>
 </head>
-
 <body>
 
 <header>
@@ -41,319 +41,179 @@ hr{border:0;border-top:1px solid #ddd;margin:18px 0}
 <main>
 
 <section id="home" class="card">
-
 <h2>Nuevo DeCA</h2>
-
-<button class="primary" onclick="nuevoDeCa()">
-＋ Crear nuevo DeCA
-</button>
-
-<button class="secondary" onclick="show('history');loadHistory()">
-📋 Mis transportes
-</button>
-
+<button class="primary" onclick="nuevoDeCa()">＋ Crear nuevo DeCA</button>
+<button class="secondary" onclick="show('history');loadHistory()">📋 Mis transportes</button>
 <hr>
-
 <h2>Gestión rápida</h2>
-
 <div class="catalogGrid">
-
-<button class="secondary" onclick="nuevoCliente()">
-👥 Clientes
-</button>
-
-<button class="secondary" onclick="nuevoVehiculo()">
-🚛 Vehículos
-</button>
-
-<button class="secondary" onclick="nuevaMercancia()">
-📦 Mercancías
-</button>
-
+<button class="secondary" onclick="nuevoCliente()">👥 Clientes</button>
+<button class="secondary" onclick="nuevoVehiculo()">🚛 Vehículos</button>
+<button class="secondary" onclick="nuevaMercancia()">📦 Mercancías</button>
 </div>
-
-<p class="small">
-Guarda tus datos habituales para reutilizarlos al crear nuevos DeCA.
-</p>
-
+<p class="small">Guarda tus datos habituales para reutilizarlos al crear nuevos DeCA.</p>
+<button class="primary" onclick="show('manage');cargarGestionCatalogos()">🗑️ Gestionar clientes y mercancías</button>
 </section>
 
-
 <section id="form" class="card hidden">
-
 <h2>Nuevo DeCA</h2>
-
 <label>Fecha y hora (Canarias)</label>
 <input id="date" type="datetime-local">
 
 <h3>Cargador / remitente</h3>
-
 <label>Cliente habitual</label>
 <select id="clientSelect" onchange="usarCliente(this.value)">
 <option value="">— Seleccionar cliente —</option>
 </select>
-
 <label>Nombre</label>
 <input id="sender">
-
 <label>NIF</label>
 <input id="senderNif">
-
 <label>Dirección</label>
 <input id="senderAddress">
 
-
 <h3>Transportista</h3>
-
 <label>Nombre</label>
 <input id="carrier">
-
 <label>NIF</label>
 <input id="carrierNif">
-
 <label>Dirección</label>
 <input id="carrierAddress">
 
-
 <h3>Destinatario</h3>
-
 <label>Nombre</label>
 <input id="receiver">
-
 <label>NIF</label>
 <input id="receiverNif">
-
 <label>Dirección</label>
 <input id="receiverAddress">
 
-
 <h3>Transporte</h3>
-
 <div class="row">
-
 <div>
 <label>Origen</label>
 <input id="origin">
 </div>
-
 <div>
 <label>Destino</label>
 <input id="destination">
 </div>
-
 </div>
 
-
 <label>Mercancía habitual</label>
-
 <select id="goodsSelect" onchange="usarMercancia(this.value)">
 <option value="">— Seleccionar mercancía —</option>
 </select>
-
 <label>Mercancía</label>
 <input id="goods" placeholder="Descripción de la mercancía">
 
-
 <div class="row">
-
 <div>
 <label>Peso (kg)</label>
 <input id="weight" inputmode="decimal">
 </div>
-
 <div>
 <label>Bultos</label>
 <input id="packages">
 </div>
-
 </div>
 
-
 <label>Vehículo habitual</label>
-
 <select id="vehicleSelect" onchange="usarVehiculo(this.value)">
 <option value="">— Seleccionar vehículo —</option>
 </select>
 
-
 <div class="row">
-
 <div>
 <label>Matrícula tractor</label>
 <input id="vehicle">
 </div>
-
 <div>
 <label>Matrícula remolque</label>
 <input id="trailer">
 </div>
-
 </div>
-
 
 <label>Observaciones</label>
 <textarea id="notes"></textarea>
-
-
-<button class="primary" onclick="saveDeca()">
-💾 Guardar DeCA
-</button>
-
-<button class="secondary" onclick="show('home')">
-Cancelar
-</button>
-
+<button class="primary" onclick="saveDeca()">💾 Guardar DeCA</button>
+<button class="secondary" onclick="show('home')">Cancelar</button>
 </section>
-
 
 <section id="history" class="card hidden">
-
 <h2>Mis transportes</h2>
-
-<input
-id="searchBox"
-placeholder="🔎 Buscar DeCA, matrícula, cliente, origen..."
-oninput="filtrarTransportes()">
-
+<input id="searchBox" placeholder="🔎 Buscar DeCA, matrícula, cliente, origen..." oninput="filtrarTransportes()">
 <div id="list"></div>
-
-<button class="secondary" onclick="show('home')">
-Volver
-</button>
-
+<button class="secondary" onclick="show('home')">Volver</button>
 </section>
 
-
 <section id="detail" class="card hidden">
-
 <h2>DeCA</h2>
-
 <div id="detailContent"></div>
-
 <div class="actions no-print">
+<button class="primary" onclick="window.print()">🖨️ PDF / Imprimir</button>
+<button class="secondary" onclick="compartirDeCa()">📤 Compartir</button>
+</div>
+<button class="secondary no-print" onclick="show('history');loadHistory()">Volver</button>
+</section>
 
-<button class="primary" onclick="window.print()">
-🖨️ PDF / Imprimir
-</button>
+<section id="manage" class="card hidden">
+<h2>Gestionar datos habituales</h2>
+<p class="small">Borra únicamente clientes o mercancías que ya no utilices. Las cartas de porte guardadas no se borrarán.</p>
 
-<button class="secondary" onclick="compartirDeCa()">
-📤 Compartir
-</button>
-
+<h3>Clientes habituales</h3>
+<div id="manageClients">
+<p>Cargando clientes...</p>
 </div>
 
-<button
-class="secondary no-print"
-onclick="show('history');loadHistory()">
+<hr>
 
-Volver
+<h3>Mercancías habituales</h3>
+<div id="manageGoods">
+<p>Cargando mercancías...</p>
+</div>
 
-</button>
-
+<hr>
+<button class="secondary" onclick="show('home')">Volver al inicio</button>
 </section>
 
 </main>
 
-
 <script>
-
-/* =====================================================
-   MOSTRAR SECCIÓN
-   ===================================================== */
-
 function show(id){
-
-document.querySelectorAll("section")
-.forEach(x=>x.classList.add("hidden"));
-
-document.getElementById(id)
-.classList.remove("hidden");
-
-window.scrollTo(0,0);
-
+  document.querySelectorAll("section").forEach(x=>x.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+  window.scrollTo(0,0);
 }
-
-
-/* =====================================================
-   FECHA Y HORA EXCLUSIVAMENTE DE CANARIAS
-   ===================================================== */
 
 function fechaHoraCanarias(){
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone:"Atlantic/Canary",
+    year:"numeric",
+    month:"2-digit",
+    day:"2-digit",
+    hour:"2-digit",
+    minute:"2-digit",
+    hourCycle:"h23"
+  }).formatToParts(new Date());
 
-const parts =
-new Intl.DateTimeFormat("en-CA", {
-
-timeZone:"Atlantic/Canary",
-
-year:"numeric",
-month:"2-digit",
-day:"2-digit",
-
-hour:"2-digit",
-minute:"2-digit",
-
-hourCycle:"h23"
-
-}).formatToParts(new Date());
-
-const p =
-Object.fromEntries(
-parts.map(x=>[x.type,x.value])
-);
-
-return (
-p.year +
-"-" +
-p.month +
-"-" +
-p.day +
-"T" +
-p.hour +
-":" +
-p.minute
-);
-
+  const p = Object.fromEntries(parts.map(x=>[x.type,x.value]));
+  return p.year+"-"+p.month+"-"+p.day+"T"+p.hour+":"+p.minute;
 }
-
-
-/* =====================================================
-   NUEVO DECA
-   ===================================================== */
 
 function nuevoDeCa(){
+  show("form");
+  const fecha=document.getElementById("date");
+  if(!fecha.value) fecha.value=fechaHoraCanarias();
 
-show("form");
-
-const fecha =
-document.getElementById("date");
-
-if(!fecha.value){
-
-fecha.value =
-fechaHoraCanarias();
-
+  if(window.cargarCatalogosFormulario){
+    window.cargarCatalogosFormulario();
+  }
 }
 
-if(window.cargarCatalogosFormulario){
-
-window.cargarCatalogosFormulario();
-
-}
-
-}
-
-
-/* =====================================================
-   FECHA INICIAL
-   ===================================================== */
-
-document.getElementById("date").value =
-fechaHoraCanarias();
-
+document.getElementById("date").value=fechaHoraCanarias();
 </script>
 
-
 <script src="backend.js"></script>
-
 </body>
 </html>
