@@ -1566,6 +1566,96 @@
     };
 
 
+   /* =====================================================
+     GESTIONAR CLIENTES Y MERCANCÍAS
+     ===================================================== */
+
+  window.cargarGestionCatalogos = async function() {
+
+    const clientesBox = document.getElementById("manageClients");
+    const mercanciasBox = document.getElementById("manageGoods");
+
+    if (!clientesBox || !mercanciasBox) return;
+
+    clientesBox.innerHTML = "<p>Cargando clientes...</p>";
+    mercanciasBox.innerHTML = "<p>Cargando mercancías...</p>";
+
+    const clientes = await obtenerCatalogo("clients");
+    const mercancias = await obtenerCatalogo("goods");
+
+    if (!clientes.length) {
+      clientesBox.innerHTML = "<p>No hay clientes guardados.</p>";
+    } else {
+      clientesBox.innerHTML = clientes.map(c => `
+        <div class="item">
+          <strong>${esc(c.name || "Cliente sin nombre")}</strong>
+          ${c.nif ? `<br>NIF: ${esc(c.nif)}` : ""}
+          ${c.address ? `<br>${esc(c.address)}` : ""}
+          <div class="actions">
+            <button type="button"
+              style="background:#dc3545;color:white"
+              onclick="borrarCatalogo('clients','${esc(c.id)}')">
+              🗑️ Borrar cliente
+            </button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    if (!mercancias.length) {
+      mercanciasBox.innerHTML = "<p>No hay mercancías guardadas.</p>";
+    } else {
+      mercanciasBox.innerHTML = mercancias.map(g => `
+        <div class="item">
+          <strong>${esc(g.name || "Mercancía sin nombre")}</strong>
+          ${g.default_weight_kg != null && g.default_weight_kg !== "" ? `<br>Peso habitual: ${esc(g.default_weight_kg)} kg` : ""}
+          ${g.default_packages != null && g.default_packages !== "" ? `<br>Bultos habituales: ${esc(g.default_packages)}` : ""}
+          <div class="actions">
+            <button type="button"
+              style="background:#dc3545;color:white"
+              onclick="borrarCatalogo('goods','${esc(g.id)}')">
+              🗑️ Borrar mercancía
+            </button>
+          </div>
+        </div>
+      `).join("");
+    }
+  };
+
+
+  window.borrarCatalogo = async function(tipo, id) {
+
+    if (!["clients", "goods"].includes(tipo) || !id) {
+      alert("No se puede borrar este elemento.");
+      return;
+    }
+
+    const etiqueta = tipo === "clients" ? "cliente" : "mercancía";
+
+    if (!confirm("¿Seguro que quieres borrar este " + etiqueta + " de los habituales?\n\nNo se borrarán las cartas de porte guardadas.")) {
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.rpc("delete_catalog", {
+        p_owner_key: ownerKey,
+        p_type: tipo,
+        p_id: id
+      });
+
+      if (error || !data) {
+        alert("No se pudo borrar el " + etiqueta + (error && error.message ? ":\n" + error.message : "."));
+        return;
+      }
+
+      alert("Se ha borrado el " + etiqueta + " de los habituales.");
+      await window.cargarGestionCatalogos();
+      await window.cargarCatalogosFormulario();
+
+    } catch (error) {
+      alert("Error al borrar: " + error.message);
+    }
+  };
   /* =====================================================
      INICIO
      ===================================================== */
